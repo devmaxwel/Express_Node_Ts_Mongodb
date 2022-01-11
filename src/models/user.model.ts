@@ -8,7 +8,7 @@ export interface userDocument extends mongoose.Document {
   password: string;
   createdAt: Date;
   updatedAt: Date;
-  comparePassword(candidatePassword: string):Promise<Boolean>
+  comparePassword(candidatePassword: string):Promise<Boolean>;
 }
 
 const UserSchema = new mongoose.Schema(
@@ -40,17 +40,17 @@ UserSchema.pre("save", async function (next){
     }
 
     const salt = await bcrypt.genSalt(config.get('saltWorkFactor'));
-    const hash = await bcrypt.hashSync(user.password, salt );
+    const hash =  bcrypt.hashSync(user.password, salt );
     user.password = hash;
+    next();
 
 });
 
 UserSchema.methods.comparePassword = async function(candidatePassword: string):Promise<boolean>{
     const user = this as userDocument;
-    return bcrypt.compare(candidatePassword, user.password).catch((e) => false);
-
+    return bcrypt.compare(candidatePassword, user.password).catch(() => false);
 };
 
-const userModel = mongoose.model("user", UserSchema);
+const userModel = mongoose.model<userDocument>("User", UserSchema);
 
 export default userModel;
